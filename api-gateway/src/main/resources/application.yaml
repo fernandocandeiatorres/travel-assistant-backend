@@ -1,0 +1,57 @@
+server:
+  port: 8080  # Gateway será o ponto de entrada principal
+
+spring:
+  application:
+    name: api-gateway
+
+  # Configuração do Spring Cloud Gateway
+  cloud:
+    gateway:
+      # Configurações globais
+      globalcors:
+        cors-configurations:
+          '[/**]':  # Aplicar CORS para todas as rotas
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            maxAge: 3600
+
+      # Definição das rotas (aqui é onde a mágica acontece!)
+      routes:
+        # Rota para Trip Service
+        - id: trip-service-route
+          uri: http://localhost:8000  # Onde está o trip-service
+          predicates:
+            - Path=/api/v1/trips/**   # Qualquer rota que comece com /api/v1/trips
+          filters:
+            - name: RequestLogging    # Log das requisições (vamos criar)
+
+        # Rota para Suggestion Service
+        - id: suggestion-service-route
+          uri: http://localhost:8010  # Onde está o suggestion-service
+          predicates:
+            - Path=/api/v1/suggestions/**  # Qualquer rota que comece com /api/v1/suggestions
+          filters:
+            - name: RequestLogging
+
+# Configuração do Actuator para monitoramento
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway  # Expor endpoints de health e gateway
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG  # Ver logs detalhados do gateway
+    com.fernandodev.apigateway: INFO
