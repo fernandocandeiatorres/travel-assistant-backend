@@ -11,12 +11,16 @@ import java.util.UUID;
 
 public record SuggestionCreateDTO(
         UUID id,
+        UUID tripId,
+        String destination,
         List<Itinerary> itineraries,
         LocalDateTime createdAt
 ) {
     public static SuggestionCreateDTO fromEntity(Suggestion suggestion) {
         return new SuggestionCreateDTO(
                 suggestion.getId(),
+                suggestion.getTripId(),
+                suggestion.getDestination(),
                 suggestion.getItineraries(),
                 suggestion.getCreatedAt()
         );

@@ -1,6 +1,7 @@
 package com.fernandodev.suggestionservice.model;
 
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -27,7 +28,9 @@ public class Suggestion {
 
     private String destination;
 
-    @OneToMany(mappedBy = "suggestion", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "suggestion", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    @Builder.Default
     private List<Itinerary> itineraries = new ArrayList<>();
 
     @CreationTimestamp

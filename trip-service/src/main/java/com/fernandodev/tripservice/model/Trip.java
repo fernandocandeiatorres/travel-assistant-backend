@@ -2,10 +2,10 @@ package com.fernandodev.tripservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -30,6 +30,9 @@ public class Trip {
     private LocalDate endsAt;
 
     private boolean isConfirmed;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
 
 }

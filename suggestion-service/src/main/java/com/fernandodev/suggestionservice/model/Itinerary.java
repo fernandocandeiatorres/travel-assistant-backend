@@ -1,5 +1,6 @@
 package com.fernandodev.suggestionservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,7 @@ public class Itinerary {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="suggestion_id", nullable = false)
+    @JsonBackReference
     private Suggestion suggestion;
 
 }
