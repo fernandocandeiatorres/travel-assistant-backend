@@ -7,6 +7,9 @@ CREATE DATABASE trip_service_db;
 -- Criar banco para o suggestion-service  
 CREATE DATABASE suggestion_service_db;
 
+-- Criação do banco de dados para o Auth Service
+CREATE DATABASE auth_service_db;
+
 -- Opcional: criar usuários específicos para cada serviço (mais seguro)
 -- CREATE USER trip_user WITH PASSWORD 'trip_password';
 -- CREATE USER suggestion_user WITH PASSWORD 'suggestion_password';

@@ -48,6 +48,8 @@ public class SuggestionController {
         Suggestion suggestion = suggestionService.getSuggestionByTripId(suggestionId);
         return ResponseEntity.ok(suggestion);
     }
+
+
     
     // Endpoint para debug do cache
     @GetMapping("/cache/debug/{tripId}")
