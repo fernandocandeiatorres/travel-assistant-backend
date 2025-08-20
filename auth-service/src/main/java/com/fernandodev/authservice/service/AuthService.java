@@ -43,4 +43,8 @@ public class AuthService {
                 .token(token)
                 .build();
     }
+
+    public Iterable<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 }

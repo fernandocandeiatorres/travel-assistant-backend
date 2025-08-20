@@ -1,5 +1,10 @@
 server:
   port: 8020 # Corrigido para coincidir com docker-compose
+
+jwt:
+  secret: 413F4428472B4B6250655368566D5970337336763979244226452948404D6351
+  expiration: 86400000 # 24 hours
+
 spring:
   application:
     name: auth-service
@@ -41,3 +46,4 @@ spring:
       write-dates-as-timestamps: false
     modules:
       - com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+
