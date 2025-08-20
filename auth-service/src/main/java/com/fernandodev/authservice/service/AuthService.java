@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.fernandodev.authservice.exception.UserAlreadyExistsException;
 
 @Service
 @RequiredArgsConstructor
@@ -21,13 +22,18 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
 
-    public User registerUser(UserRegistrationRequestDto userDto) {
+    public AuthResponseDto registerUser(UserRegistrationRequestDto userDto) {
+        if (userRepository.findByEmail(userDto.email()).isPresent()) {
+            throw new UserAlreadyExistsException("Email já cadastrado: " + userDto.email());
+        }
         var user = User.builder()
                 .name(userDto.name())
                 .email(userDto.email())
                 .password(passwordEncoder.encode(userDto.password()))
                 .build();
-        return userRepository.save(user);
+        userRepository.save(user);
+        var token = jwtTokenProvider.generateToken(user);
+        return AuthResponseDto.builder().token(token).build();
     }
 
     public AuthResponseDto login(UserLoginRequestDto userLoginRequestDto) {
