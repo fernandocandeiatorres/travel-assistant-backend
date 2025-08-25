@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: trip-service-route
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/v1/trips/**
+        - id: suggestion-service-route
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/suggestions/**
