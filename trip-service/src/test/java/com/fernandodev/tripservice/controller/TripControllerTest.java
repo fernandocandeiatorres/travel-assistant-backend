@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fernandodev.tripservice.dto.TripCreateRequest;
 import com.fernandodev.tripservice.dto.TripCreateResponse;
 import com.fernandodev.tripservice.dto.TripGetResponse;
+import com.fernandodev.tripservice.model.Trip;
 import com.fernandodev.tripservice.service.TripService;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -14,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -36,10 +40,18 @@ public class TripControllerTest {
     @MockBean
     private TripService tripService;
 
+    private static UUID userMockID;
+
+    @BeforeAll
+    public static void setUp() {
+        // Any global setup can be done here
+        userMockID = UUID.randomUUID();
+    }
+
     @Test
     public void shouldCreateTrip() throws Exception {
         TripCreateRequest requestDto = new TripCreateRequest("Paris", LocalDate.now(), LocalDate.now().plusDays(5));
-        TripCreateResponse responseDto = new TripCreateResponse(1L);
+        TripCreateResponse responseDto = new TripCreateResponse(userMockID);
 
         when(tripService.createTrip(any(TripCreateRequest.class))).thenReturn(responseDto);
 
@@ -47,18 +59,26 @@ public class TripControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.tripId").value(1L));
+                .andExpect(jsonPath("$.tripId").value(userMockID.toString()));
     }
 
     @Test
     public void shouldGetTrip() throws Exception {
-        TripGetResponse responseDto = new TripGetResponse(1L, "Paris", LocalDate.now(), LocalDate.now().plusDays(5));
 
-        when(tripService.getTripById(anyLong())).thenReturn(responseDto);
+        Trip responseTrip = Trip.builder()
+                .id(userMockID)
+                .userId(userMockID)
+                .startsAt(LocalDate.now())
+                .endsAt(LocalDate.now().plusDays(5))
+                .destination("Paris")
+                .isConfirmed(true)
+                .build();
 
-        mockMvc.perform(get("/api/v1/trips/1"))
+        when(tripService.getTripById(userMockID)).thenReturn(responseTrip);
+
+        mockMvc.perform(get("/api/v1/trips/{id}", userMockID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.id").value(userMockID.toString()))
                 .andExpect(jsonPath("$.destination").value("Paris"));
     }
 }
