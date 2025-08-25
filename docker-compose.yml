@@ -35,74 +35,134 @@ services:
       - "6379:6379"
 
   # --- MICROSSERVIÇOS DA APLICAÇÃO ---
-  # Comentado para executar localmente na máquina
+  trip-service:
+    build:
+      context: ./trip-service
+      dockerfile: Dockerfile
+    container_name: trip-service-app
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVER_PORT=8000
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/trip_service_db
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_RABBITMQ_HOST=rabbitmq
+    depends_on:
+      - postgres
+      - rabbitmq
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8000/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # trip-service:
-  #   # O 'build' diz ao Docker Compose para construir a imagem
-  #   # usando o Dockerfile dentro da pasta especificada.
-  #   build:
-  #     context: ./trip-service
-  #     dockerfile: Dockerfile
-  #   container_name: trip-service-app
-  #   ports:
-  #     - "8000:8000" # Mapeia a porta 8000 do contêiner para a 8000 da sua máquina
-  #   environment:
-  #     # Configurações para conectar com a infraestrutura DENTRO da rede Docker
-  #     - SERVER_PORT=8000
-  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/trip_service_db
-  #     - SPRING_DATASOURCE_USERNAME=myuser
-  #     - SPRING_DATASOURCE_PASSWORD=secret
-  #     - SPRING_RABBITMQ_HOST=rabbitmq
-  #   depends_on:
-  #     - postgres
-  #     - rabbitmq
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD",
-  #         "wget",
-  #         "--quiet",
-  #         "--tries=1",
-  #         "--spider",
-  #         "http://localhost:8000/actuator/health",
-  #       ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  suggestion-service:
+    build:
+      context: ./suggestion-service
+      dockerfile: Dockerfile
+    container_name: suggestion-service-app
+    ports:
+      - "8010:8010"
+    environment:
+      - SERVER_PORT=8010
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/suggestion_service_db
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_DATA_REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8010/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  # suggestion-service:
-  #   build:
-  #     context: ./suggestion-service
-  #     dockerfile: Dockerfile
-  #   container_name: suggestion-service-app
-  #   ports:
-  #     - "8010:8010"
-  #   environment:
-  #     - SERVER_PORT=8010
-  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/suggestion_service_db
-  #     - SPRING_DATASOURCE_USERNAME=myuser
-  #     - SPRING_DATASOURCE_PASSWORD=secret
-  #     - SPRING_RABBITMQ_HOST=rabbitmq
-  #     - SPRING_DATA_REDIS_HOST=redis
-  #   depends_on:
-  #     - postgres
-  #     - rabbitmq
-  #     - redis
-  #   restart: unless-stopped
-  #   healthcheck:
-  #     test:
-  #       [
-  #         "CMD",
-  #         "wget",
-  #         "--quiet",
-  #         "--tries=1",
-  #         "--spider",
-  #         "http://localhost:8010/actuator/health",
-  #       ]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service-app
+    ports:
+      - "8020:8020"
+    environment:
+      - SERVER_PORT=8020
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_service_db
+      - SPRING_DATASOURCE_USERNAME=myuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_DATA_REDIS_HOST=redis
+      - JWT_SECRET=413F4428472B4B6250655368566D5970337336763979244226452948404D6351
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8020/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - TRIP_SERVICE_URL=http://trip-service:8000
+      - SUGGESTION_SERVICE_URL=http://suggestion-service:8010
+      - AUTH_SERVICE_URL=http://auth-service:8020
+    depends_on:
+      - trip-service
+      - suggestion-service
+      - auth-service
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 # Define um volume nomeado para persistir os dados do PostgreSQL
 volumes:

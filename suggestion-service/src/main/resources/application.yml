@@ -4,9 +4,9 @@ spring:
   application:
     name: suggestion-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/suggestion_service_db # Corrigido para usar a mesma porta do PostgreSQL
-    username: myuser
-    password: secret
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,17 +23,17 @@ spring:
     baseline-version: 0
 
   rabbitmq:
-    host: localhost
+    host: ${SPRING_RABBITMQ_HOST}
     port: 5672
-    username: myuser
-    password: secret
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
   cache:
     type: redis
 
   data:
     redis:
-      host: localhost
+      host: ${SPRING_DATA_REDIS_HOST}
       port: 6379
 
   jackson:

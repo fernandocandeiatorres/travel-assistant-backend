@@ -4,9 +4,9 @@ spring:
   application:
     name: trip-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/trip_service_db
-    username: myuser
-    password: secret
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,7 +23,7 @@ spring:
     baseline-version: 0
 
   rabbitmq:
-    host: localhost
+    host: ${SPRING_RABBITMQ_HOST}
     port: 5672
-    username: myuser
-    password: secret
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}

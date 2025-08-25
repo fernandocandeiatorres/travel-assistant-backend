@@ -9,7 +9,7 @@ spring:
     gateway:
       globalcors:
         cors-configurations:
-          '[/**]':
+          "[/**]":
             allowedOrigins: "*"
             allowedMethods:
               - GET
@@ -22,19 +22,19 @@ spring:
 
       routes:
         - id: trip-service-route
-          uri: http://localhost:8000
+          uri: ${TRIP_SERVICE_URL}
           predicates:
             - Path=/api/v1/trips/**
           filters:
             - name: RequestLogging
 
         - id: suggestion-service-route
-          uri: http://localhost:8010
+          uri: ${SUGGESTION_SERVICE_URL}
           predicates:
             - Path=/api/v1/suggestions/**
 
         - id: user-service-route
-          uri: http://localhost:8020
+          uri: ${AUTH_SERVICE_URL}
           predicates:
             - Path=/api/v1/users/**
 
