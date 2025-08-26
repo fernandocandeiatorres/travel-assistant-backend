@@ -49,6 +49,12 @@ public class SuggestionController {
         return ResponseEntity.ok(suggestion);
     }
 
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        // Simula uma verificação que pode falhar ou ficar lenta
+        return ResponseEntity.ok("Suggestion Service is UP");
+    }
+
 
     
     // Endpoint para debug do cache

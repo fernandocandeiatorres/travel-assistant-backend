@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -21,6 +23,8 @@ import java.util.List;
 
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     // TODO: A chave secreta deve ser carregada de uma maneira mais segura (e.g., variável de ambiente, Vault)
     @Value("${jwt.secret}")
@@ -86,7 +90,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());
 
             } catch (Exception e) {
-                ApiGatewayApplication.logger.error("JWT Validation Error: " + e.getMessage());
+                logger.error("JWT Validation Error: {}", e.getMessage());
                 return onError(exchange, "Invalid or expired JWT token", HttpStatus.UNAUTHORIZED);
             }
         };

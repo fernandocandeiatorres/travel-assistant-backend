@@ -27,3 +27,21 @@ spring:
     port: 5672
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+
+# Resilience4j Circuit Breaker configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      suggestionService:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10 # últimas 10 chamadas
+        failureRateThreshold: 50 # abre se 50% falharem
+        waitDurationInOpenState: 10s # espera 10s antes de ir para HALF_OPEN
+        permittedNumberOfCallsInHalfOpenState: 3 # permite 3 chamadas de teste
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        ignoreExceptions:
+          - com.fernandodev.tripservice.exception.TripNotFoundException
+        recordExceptions:
+          - java.io.IOException
+          - org.springframework.web.client.HttpServerErrorException

@@ -67,6 +67,13 @@
             <artifactId>spring-cloud-starter-gateway</artifactId>
         </dependency>
 
+        <!-- JSON Structured Logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
+
         <!-- Load Balancer para distribuição de carga -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
