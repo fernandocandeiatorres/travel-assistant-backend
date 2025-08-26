@@ -27,16 +27,41 @@ spring:
             - Path=/api/v1/trips/**
           filters:
             - name: RequestLogging
+            - name: Authentication
 
         - id: suggestion-service-route
           uri: ${SUGGESTION_SERVICE_URL}
           predicates:
             - Path=/api/v1/suggestions/**
+          filters:
+            - name: Authentication
 
         - id: user-service-route
           uri: ${AUTH_SERVICE_URL}
           predicates:
             - Path=/api/v1/users/**
+
+  # Configuração do Springdoc para o Gateway
+  springdoc:
+    swagger-ui:
+      urls:
+        - name: "Trip Service"
+          url: "/v3/api-docs"
+        - name: "Suggestion Service"
+          url: "/v3/api-docs"
+        - name: "Auth Service"
+          url: "/v3/api-docs"
+    # Mapeia os caminhos dos docs para os serviços corretos
+    api-docs:
+      groups:
+        enabled: true
+      paths:
+        - path: "/trip-service/v3/api-docs"
+          service: "trip-service"
+        - path: "/suggestion-service/v3/api-docs"
+          service: "suggestion-service"
+        - path: "/auth-service/v3/api-docs"
+          service: "auth-service"
 
 management:
   endpoints:
@@ -46,6 +71,13 @@ management:
   endpoint:
     health:
       show-details: always
+
+jwt:
+  secret: ${JWT_SECRET_KEY:92B4E9A7C3F8D6E1A0B5C4F3E2D1A9B8C7D6E5F4A3B2C1D0E9F8A7B6C5D4E3F2} # TODO: Mover para variável de ambiente
+
+public-endpoints:
+  - /api/v1/users/register
+  - /api/v1/users/login
 
 logging:
   level:

@@ -5,6 +5,8 @@ import com.fernandodev.tripservice.config.RabbitMQConfig;
 import com.fernandodev.tripservice.dto.TripCreateRequest;
 import com.fernandodev.tripservice.dto.TripCreateResponse;
 import com.fernandodev.tripservice.dto.TripCreatedEvent;
+import com.fernandodev.tripservice.dto.TripGetResponse;
+import com.fernandodev.tripservice.dto.TripUpdateRequest;
 import com.fernandodev.tripservice.exception.TripNotFoundException;
 import com.fernandodev.tripservice.model.Trip;
 import com.fernandodev.tripservice.repository.TripRepository;
@@ -27,14 +29,16 @@ public class TripService {
                 .orElseThrow(() -> new TripNotFoundException("Trip not found."));
     }
 
-    public List<Trip> getAllTrips() {
-        return this.tripRepository.findAll();
+    public List<TripGetResponse> getAllTrips() {
+        return this.tripRepository.findAll().stream()
+                .map(TripGetResponse::fromEntity)
+                .toList();
     }
 
 
-    public TripCreateResponse createTrip(TripCreateRequest trip) {
+    public TripCreateResponse createTrip(TripCreateRequest trip, UUID userId) {
         Trip newTrip = Trip.builder()
-                .userId(UUID.randomUUID()) // TODO: Obter do contexto de autenticação
+                .userId(userId)
                 .destination(trip.destination())
                 .startsAt(trip.startsAt())
                 .endsAt(trip.endsAt())
@@ -62,5 +66,36 @@ public class TripService {
 
 
         return TripCreateResponse.fromEntity(savedTrip);
+    }
+
+    public Trip updateTrip(UUID tripId, TripUpdateRequest tripUpdateRequest, UUID userId) {
+        Trip existingTrip = this.tripRepository.findById(tripId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found."));
+
+        // Validar se o userId da requisição é o mesmo do proprietário da viagem
+        if (!existingTrip.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to update this trip."); // Ou uma exceção mais específica
+        }
+
+        existingTrip.setDestination(tripUpdateRequest.destination());
+        existingTrip.setStartsAt(tripUpdateRequest.startsAt());
+        existingTrip.setEndsAt(tripUpdateRequest.endsAt());
+        if (tripUpdateRequest.isConfirmed() != null) {
+            existingTrip.setConfirmed(tripUpdateRequest.isConfirmed());
+        }
+
+        return this.tripRepository.save(existingTrip);
+    }
+
+    public void deleteTrip(UUID tripId, UUID userId) {
+        Trip existingTrip = this.tripRepository.findById(tripId)
+                .orElseThrow(() -> new TripNotFoundException("Trip not found."));
+
+        // Validar se o userId da requisição é o mesmo do proprietário da viagem
+        if (!existingTrip.getUserId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to delete this trip."); // Ou uma exceção mais específica
+        }
+
+        this.tripRepository.delete(existingTrip);
     }
 }
