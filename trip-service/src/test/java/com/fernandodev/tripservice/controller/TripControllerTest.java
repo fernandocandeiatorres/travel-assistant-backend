@@ -5,42 +5,32 @@ import com.fernandodev.tripservice.dto.TripCreateRequest;
 import com.fernandodev.tripservice.dto.TripCreateResponse;
 import com.fernandodev.tripservice.dto.TripGetResponse;
 import com.fernandodev.tripservice.dto.TripUpdateRequest;
+import com.fernandodev.tripservice.environment.InstanceInformationService;
 import com.fernandodev.tripservice.model.Trip;
 import com.fernandodev.tripservice.service.TripService;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.client.RestTemplate;
-import com.fernandodev.tripservice.environment.InstanceInformationService;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(TripController.class)
 public class TripControllerTest {
 
     @Autowired
@@ -53,24 +43,17 @@ public class TripControllerTest {
     private TripService tripService;
 
     @MockBean
-    private RestTemplate restTemplate;
-
-    @MockBean
     private InstanceInformationService instanceInformationService;
 
-    @MockBean
-    private RabbitTemplate rabbitTemplate;
+    private UUID userMockID;
 
-    private static UUID userMockID;
-
-    @BeforeAll
-    public static void setUp() {
-        // Any global setup can be done here
+    @BeforeEach
+    void setUp() {
         userMockID = UUID.randomUUID();
     }
 
     @Test
-    public void shouldCreateTrip() throws Exception {
+    void shouldCreateTrip() throws Exception {
         TripCreateRequest requestDto = new TripCreateRequest("Paris", LocalDate.now(), LocalDate.now().plusDays(5));
         TripCreateResponse responseDto = new TripCreateResponse(UUID.randomUUID(), userMockID, "Paris", LocalDate.now(), LocalDate.now().plusDays(5), null);
 
@@ -86,18 +69,17 @@ public class TripControllerTest {
     }
 
     @Test
-    public void shouldGetTrip() throws Exception {
-
-        Trip responseTrip = Trip.builder()
+    void shouldGetTrip() throws Exception {
+        Trip trip = Trip.builder()
                 .id(userMockID)
                 .userId(userMockID)
+                .destination("Paris")
                 .startsAt(LocalDate.now())
                 .endsAt(LocalDate.now().plusDays(5))
-                .destination("Paris")
                 .isConfirmed(true)
                 .build();
 
-        when(tripService.getTripById(userMockID)).thenReturn(responseTrip);
+        when(tripService.getTripById(userMockID)).thenReturn(trip);
 
         mockMvc.perform(get("/api/v1/trips/{id}", userMockID))
                 .andExpect(status().isOk())
@@ -106,7 +88,7 @@ public class TripControllerTest {
     }
 
     @Test
-    public void shouldGetAllTrips() throws Exception {
+    void shouldGetAllTrips() throws Exception {
         TripGetResponse trip1 = TripGetResponse.builder()
                 .id(UUID.randomUUID())
                 .userId(userMockID)
@@ -134,7 +116,7 @@ public class TripControllerTest {
     }
 
     @Test
-    public void shouldUpdateTrip() throws Exception {
+    void shouldUpdateTrip() throws Exception {
         UUID tripId = UUID.randomUUID();
         TripUpdateRequest requestDto = new TripUpdateRequest("London", LocalDate.now().plusDays(1), LocalDate.now().plusDays(7), true);
 
@@ -160,7 +142,7 @@ public class TripControllerTest {
     }
 
     @Test
-    public void shouldDeleteTrip() throws Exception {
+    void shouldDeleteTrip() throws Exception {
         UUID tripId = UUID.randomUUID();
 
         mockMvc.perform(delete("/api/v1/trips/{tripId}", tripId)
