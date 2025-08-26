@@ -7,6 +7,7 @@ import com.fernandodev.suggestionservice.model.BudgetType;
 import com.fernandodev.suggestionservice.model.Itinerary;
 import com.fernandodev.suggestionservice.model.Suggestion;
 import com.fernandodev.suggestionservice.repository.SuggestionRepository;
+import com.fernandodev.suggestionservice.repository.ItineraryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,6 +23,7 @@ import java.util.UUID;
 public class SuggestionService {
 
     private final SuggestionRepository suggestionRepository;
+    private final ItineraryRepository itineraryRepository;
 
     public SuggestionCreateDTO generateSuggestionFor(TripCreatedEvent event) {
         Suggestion newSuggestion = Suggestion.builder()
@@ -58,11 +60,13 @@ public class SuggestionService {
         return response;
     }
 
-    public Suggestion getSuggestionByTripId(UUID tripId) {
-        return suggestionRepository.findByTripId(tripId)
-                .orElseThrow(
-                        () -> new RuntimeException("No suggestions found for trip Id.")
-                );
+    public String getHealthStatus() {
+        return "Suggestion Service is UP";
+    }
+
+    public Suggestion getSuggestionById(UUID suggestionId) {
+        return suggestionRepository.findById(suggestionId)
+                .orElseThrow(() -> new RuntimeException("Suggestion not found")); // TODO: Criar exceção específica
     }
 
     @Cacheable(value = "suggestions", key = "#tripId")

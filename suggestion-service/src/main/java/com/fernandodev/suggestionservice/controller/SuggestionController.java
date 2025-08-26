@@ -45,14 +45,13 @@ public class SuggestionController {
     
     @GetMapping("/{suggestionId}")
     public ResponseEntity<Suggestion> getSuggestionById(@PathVariable UUID suggestionId) {
-        Suggestion suggestion = suggestionService.getSuggestionByTripId(suggestionId);
+        Suggestion suggestion = suggestionService.getSuggestionById(suggestionId);
         return ResponseEntity.ok(suggestion);
     }
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        // Simula uma verificação que pode falhar ou ficar lenta
-        return ResponseEntity.ok("Suggestion Service is UP");
+        return ResponseEntity.ok(suggestionService.getHealthStatus());
     }
 
 
