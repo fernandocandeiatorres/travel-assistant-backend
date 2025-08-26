@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
+import com.fernandodev.tripservice.environment.InstanceInformationService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,6 +53,9 @@ public class TripControllerTest {
 
     @MockBean
     private RestTemplate restTemplate;
+
+    @MockBean
+    private InstanceInformationService instanceInformationService;
 
     private static UUID userMockID;
 
