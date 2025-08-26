@@ -18,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import com.fernandodev.tripservice.environment.InstanceInformationService;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -56,6 +57,9 @@ public class TripControllerTest {
 
     @MockBean
     private InstanceInformationService instanceInformationService;
+
+    @MockBean
+    private RabbitTemplate rabbitTemplate;
 
     private static UUID userMockID;
 
