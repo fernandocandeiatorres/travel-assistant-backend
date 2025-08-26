@@ -62,7 +62,7 @@ public class AuthenticationFilterTest {
     void shouldAllowAccessForPublicEndpoints() {
         ReflectionTestUtils.setField(authenticationFilter, "publicEndpoints", Collections.singletonList("/api/v1/users/login"));
 
-        ServerHttpRequest request = MockServerHttpRequest.get("/api/v1/users/login").build();
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/users/login").build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
 
         when(filterChain.filter(exchange)).thenReturn(Mono.empty());
@@ -79,7 +79,7 @@ public class AuthenticationFilterTest {
         String userEmail = "test@example.com";
         String token = generateValidToken(userId, userEmail);
 
-        ServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
                 .header("Authorization", "Bearer " + token)
                 .build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -98,7 +98,7 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldRejectWithoutAuthorizationHeader() {
-        ServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips").build();
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips").build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
@@ -111,7 +111,7 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldRejectWithInvalidTokenFormat() {
-        ServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
                 .header("Authorization", "InvalidToken")
                 .build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
@@ -136,7 +136,7 @@ public class AuthenticationFilterTest {
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
 
-        ServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
+        MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
                 .header("Authorization", "Bearer " + expiredToken)
                 .build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
