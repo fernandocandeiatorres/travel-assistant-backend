@@ -95,8 +95,22 @@ public class TripControllerTest {
 
     @Test
     public void shouldGetAllTrips() throws Exception {
-        TripGetResponse trip1 = new TripGetResponse(UUID.randomUUID(), userMockID, "Rome", LocalDate.now(), LocalDate.now().plusDays(7), false, LocalDateTime.now());
-        TripGetResponse trip2 = new TripGetResponse(UUID.randomUUID(), userMockID, "Berlin", LocalDate.now().plusDays(10), LocalDate.now().plusDays(15), true, LocalDateTime.now());
+        TripGetResponse trip1 = TripGetResponse.builder()
+                .id(UUID.randomUUID())
+                .userId(userMockID)
+                .destination("Rome")
+                .startsAt(LocalDate.now())
+                .endsAt(LocalDate.now().plusDays(7))
+                .isConfirmed(false)
+                .build();
+        TripGetResponse trip2 = TripGetResponse.builder()
+                .id(UUID.randomUUID())
+                .userId(userMockID)
+                .destination("Berlin")
+                .startsAt(LocalDate.now().plusDays(10))
+                .endsAt(LocalDate.now().plusDays(15))
+                .isConfirmed(true)
+                .build();
         List<TripGetResponse> allTrips = Arrays.asList(trip1, trip2);
 
         when(tripService.getAllTrips()).thenReturn(allTrips);
@@ -111,7 +125,6 @@ public class TripControllerTest {
     public void shouldUpdateTrip() throws Exception {
         UUID tripId = UUID.randomUUID();
         TripUpdateRequest requestDto = new TripUpdateRequest("London", LocalDate.now().plusDays(1), LocalDate.now().plusDays(7), true);
-        TripGetResponse responseDto = new TripGetResponse(tripId, userMockID, "London", LocalDate.now().plusDays(1), LocalDate.now().plusDays(7), true, null);
 
         Trip updatedTrip = Trip.builder()
                 .id(tripId)

@@ -5,7 +5,9 @@ import com.fernandodev.tripservice.model.Trip;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import lombok.Builder;
 
+@Builder
 public record TripGetResponse(
         UUID id,
         UUID userId,
