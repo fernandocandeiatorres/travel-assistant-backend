@@ -1,0 +1,25 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: trip-service-route
+          uri: http://localhost:8000
+          predicates:
+            - Path=/api/v1/trips/**
+
+        - id: suggestion-service-route
+          uri: http://localhost:8010
+          predicates:
+            - Path=/api/v1/suggestions/**
+
+        - id: user-service-route
+          uri: http://localhost:8020
+          predicates:
+            - Path=/api/v1/users/**
+
+jwt:
+  secret: 413F4428472B4B6250655368566D5970337336763979244226452948404D6351
+
+public-endpoints:
+  - /api/v1/users/register
+  - /api/v1/users/login

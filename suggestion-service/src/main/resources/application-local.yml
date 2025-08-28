@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/suggestion_service_db
+    username: myuser
+    password: secret
+  rabbitmq:
+    host: localhost
+    username: myuser
+    password: secret
+  data:
+    redis:
+      host: localhost

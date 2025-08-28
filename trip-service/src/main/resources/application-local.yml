@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/trip_service_db
+    username: myuser
+    password: secret
+  rabbitmq:
+    host: localhost
+    username: myuser
+    password: secret

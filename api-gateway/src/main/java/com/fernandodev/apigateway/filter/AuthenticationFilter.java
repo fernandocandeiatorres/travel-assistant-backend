@@ -1,11 +1,15 @@
 package com.fernandodev.apigateway.filter;
 
 import com.fernandodev.apigateway.ApiGatewayApplication;
+import com.fernandodev.apigateway.config.GatewayConfigProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -13,106 +17,98 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import org.springframework.beans.factory.annotation.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
-public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
+@Slf4j
+public class AuthenticationFilter implements GatewayFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthenticationFilter.class);
-
-    // TODO: A chave secreta deve ser carregada de uma maneira mais segura (e.g., variável de ambiente, Vault)
-    @Value("${jwt.secret}")
-    private String secret;
-    private SecretKey secretKey;
-
-    @Value("${public-endpoints}")
-    private List<String> publicEndpoints;
-
-    public AuthenticationFilter() {
-        super(Config.class);
-    }
+    @Autowired
+    private GatewayConfigProperties configProperties;
 
     @Override
-    public GatewayFilter apply(Config config) {
-        return (exchange, chain) -> {
-            ServerHttpRequest request = exchange.getRequest();
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getPath().toString();
 
-            // Permitir acesso a endpoints públicos (e.g., login, registro)
-            if (isPublicEndpoint(request)) {
-                return chain.filter(exchange);
-            }
+        if (isPublicEndpoint(path)) {
+            return chain.filter(exchange);
+        }
 
-            // 1. Verificar se o cabeçalho Authorization está presente
-            if (!request.getHeaders().containsKey("Authorization")) {
-                return onError(exchange, "Authorization header missing", HttpStatus.UNAUTHORIZED);
-            }
+        // 1. Verificar se o cabeçalho Authorization está presente
+        if (!request.getHeaders().containsKey("Authorization")) {
+            return onError(exchange, HttpStatus.UNAUTHORIZED);
+        }
 
-            String authHeader = request.getHeaders().getFirst("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                return onError(exchange, "Invalid Authorization header", HttpStatus.UNAUTHORIZED);
-            }
+        String authHeader = request.getHeaders().getFirst("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return onError(exchange, HttpStatus.UNAUTHORIZED);
+        }
 
-            String token = authHeader.substring(7);
+        String token = authHeader.substring(7);
 
-            try {
-                // Inicializa a chave secreta uma vez
-                if (this.secretKey == null) {
-                    this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                }
+        if (!validateToken(token)) {
+            return onError(exchange, HttpStatus.UNAUTHORIZED);
+        }
 
-                // 2. Validar o token JWT e extrair as claims
-                Jws<Claims> claimsJws = Jwts.parserBuilder()
-                        .setSigningKey(secretKey)
-                        .build()
-                        .parseClaimsJws(token);
+        // 3. Adicionar o userId (e outras claims) aos cabeçalhos da requisição
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(Keys.hmacShaKeyFor(configProperties.getJwt().getSecret().getBytes()))
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
 
-                Claims claims = claimsJws.getBody();
+        String userId = claims.get("userId", String.class);
+        String userEmail = claims.get("sub", String.class); // 'sub' geralmente contém o email ou username
 
-                // 3. Adicionar o userId (e outras claims) aos cabeçalhos da requisição
-                String userId = claims.get("userId", String.class);
-                String userEmail = claims.get("sub", String.class); // 'sub' geralmente contém o email ou username
+        if (userId == null || userEmail == null) {
+            return onError(exchange, HttpStatus.UNAUTHORIZED);
+        }
 
-                if (userId == null || userEmail == null) {
-                    return onError(exchange, "Token claims missing (userId or sub)", HttpStatus.UNAUTHORIZED);
-                }
+        ServerHttpRequest modifiedRequest = request.mutate()
+                .header("X-User-Id", userId)
+                .header("X-User-Email", userEmail)
+                .build();
 
-                ServerHttpRequest modifiedRequest = request.mutate()
-                        .header("X-User-Id", userId)
-                        .header("X-User-Email", userEmail)
-                        .build();
-
-                return chain.filter(exchange.mutate().request(modifiedRequest).build());
-
-            } catch (Exception e) {
-                logger.error("JWT Validation Error: {}", e.getMessage());
-                return onError(exchange, "Invalid or expired JWT token", HttpStatus.UNAUTHORIZED);
-            }
-        };
+        return chain.filter(exchange.mutate().request(modifiedRequest).build());
     }
 
-    private Mono<Void> onError(ServerWebExchange exchange, String err, HttpStatus httpStatus) {
+    private Mono<Void> onError(ServerWebExchange exchange, HttpStatus status) {
         ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(httpStatus);
+        response.setStatusCode(status);
         response.getHeaders().add("Content-Type", "application/json");
 
-        String errorResponse = String.format("{\"status\":%d, \"error\":\"%s\"}", httpStatus.value(), err);
+        String errorResponse = String.format("{\"status\":%d, \"error\":\"%s\"}", status.value(), status.getReasonPhrase());
 
-        return response.writeWith(Mono.just(response.bufferFactory().wrap(errorResponse.getBytes(StandardCharsets.UTF_8))));
+        return exchange.getResponse().writeWith(Mono.just(response.bufferFactory().wrap(errorResponse.getBytes(StandardCharsets.UTF_8))));
     }
 
-    private boolean isPublicEndpoint(ServerHttpRequest request) {
-        String path = request.getURI().getPath();
-        // TODO: Definir endpoints públicos de forma mais robusta (e.g., arquivo de configuração)
-        return publicEndpoints.stream().anyMatch(path::startsWith);
+    private boolean isPublicEndpoint(String path) {
+        return configProperties.getPublicEndpoints().stream().anyMatch(path::startsWith);
     }
 
-    public static class Config {
-        // Não são necessárias configurações específicas para este filtro por enquanto
+    private boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(configProperties.getJwt().getSecret().getBytes()))
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            log.error("JWT Validation Error: {}", e.getMessage());
+            return false;
+        }
     }
 }
