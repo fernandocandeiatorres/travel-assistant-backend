@@ -1,6 +1,7 @@
 package com.fernandodev.apigateway.filter;
 
 import com.fernandodev.apigateway.ApiGatewayApplication;
+import com.fernandodev.apigateway.config.GatewayConfigProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -26,6 +27,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -35,6 +37,8 @@ public class AuthenticationFilterTest {
 
     @InjectMocks
     private AuthenticationFilter authenticationFilter;
+    @Mock
+    private GatewayConfigProperties configProperties;
 
     @Mock
     private GatewayFilterChain filterChain;
@@ -44,8 +48,13 @@ public class AuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
-        ReflectionTestUtils.setField(authenticationFilter, "secret", SECRET);
-        ReflectionTestUtils.setField(authenticationFilter, "publicEndpoints", Collections.emptyList());
+        // Mocks are configured per-test to avoid UnnecessaryStubbingException
+    }
+
+    private void setupJwtMock() {
+        GatewayConfigProperties.Jwt jwtProperties = mock(GatewayConfigProperties.Jwt.class);
+        when(configProperties.getJwt()).thenReturn(jwtProperties);
+        when(jwtProperties.getSecret()).thenReturn(SECRET);
     }
 
     private String generateValidToken(UUID userId, String userEmail) {
@@ -60,14 +69,14 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldAllowAccessForPublicEndpoints() {
-        ReflectionTestUtils.setField(authenticationFilter, "publicEndpoints", Collections.singletonList("/api/v1/users/login"));
+        when(configProperties.getPublicEndpoints()).thenReturn(List.of("/api/v1/users/login"));
 
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/users/login").build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
 
         when(filterChain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(authenticationFilter.apply(new AuthenticationFilter.Config()).filter(exchange, filterChain))
+        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, times(1)).filter(exchange);
@@ -75,6 +84,8 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldPassWithValidToken() {
+        setupJwtMock();
+        when(configProperties.getPublicEndpoints()).thenReturn(Collections.emptyList());
         UUID userId = UUID.randomUUID();
         String userEmail = "test@example.com";
         String token = generateValidToken(userId, userEmail);
@@ -86,7 +97,7 @@ public class AuthenticationFilterTest {
 
         when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(authenticationFilter.apply(new AuthenticationFilter.Config()).filter(exchange, filterChain))
+        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, times(1)).filter(any(ServerWebExchange.class));
@@ -96,11 +107,12 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldRejectWithoutAuthorizationHeader() {
+        when(configProperties.getPublicEndpoints()).thenReturn(Collections.emptyList());
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips").build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
-        StepVerifier.create(authenticationFilter.apply(new AuthenticationFilter.Config()).filter(exchange, filterChain))
+        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, never()).filter(any(ServerWebExchange.class));
@@ -109,13 +121,14 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldRejectWithInvalidTokenFormat() {
+        when(configProperties.getPublicEndpoints()).thenReturn(Collections.emptyList());
         MockServerHttpRequest request = MockServerHttpRequest.get("/api/v1/trips")
                 .header("Authorization", "InvalidToken")
                 .build();
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
-        StepVerifier.create(authenticationFilter.apply(new AuthenticationFilter.Config()).filter(exchange, filterChain))
+        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, never()).filter(any(ServerWebExchange.class));
@@ -124,6 +137,8 @@ public class AuthenticationFilterTest {
 
     @Test
     void shouldRejectWithExpiredToken() {
+        setupJwtMock();
+        when(configProperties.getPublicEndpoints()).thenReturn(Collections.emptyList());
         UUID userId = UUID.randomUUID();
         String userEmail = "test@example.com";
         String expiredToken = Jwts.builder()
@@ -140,7 +155,7 @@ public class AuthenticationFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
-        StepVerifier.create(authenticationFilter.apply(new AuthenticationFilter.Config()).filter(exchange, filterChain))
+        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, never()).filter(any(ServerWebExchange.class));

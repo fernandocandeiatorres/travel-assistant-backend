@@ -24,44 +24,38 @@ spring:
         - id: trip-service-route
           uri: ${TRIP_SERVICE_URL}
           predicates:
-            - Path=/api/v1/trips/**
+            - Path=/trip-service/**
           filters:
+            - StripPrefix=1
             - name: RequestLogging
             - name: Authentication
 
         - id: suggestion-service-route
           uri: ${SUGGESTION_SERVICE_URL}
           predicates:
-            - Path=/api/v1/suggestions/**
+            - Path=/suggestion-service/**
           filters:
+            - StripPrefix=1
             - name: Authentication
 
-        - id: user-service-route
+        - id: auth-service-route
           uri: ${AUTH_SERVICE_URL}
           predicates:
-            - Path=/api/v1/users/**
+            - Path=/auth-service/**
+          filters:
+            - StripPrefix=1
+            - name: Authentication
 
   # Configuração do Springdoc para o Gateway
   springdoc:
     swagger-ui:
       urls:
         - name: "Trip Service"
-          url: "/v3/api-docs"
+          url: "/trip-service/v3/api-docs"
         - name: "Suggestion Service"
-          url: "/v3/api-docs"
+          url: "/suggestion-service/v3/api-docs"
         - name: "Auth Service"
-          url: "/v3/api-docs"
-    # Mapeia os caminhos dos docs para os serviços corretos
-    api-docs:
-      groups:
-        enabled: true
-      paths:
-        - path: "/trip-service/v3/api-docs"
-          service: "trip-service"
-        - path: "/suggestion-service/v3/api-docs"
-          service: "suggestion-service"
-        - path: "/auth-service/v3/api-docs"
-          service: "auth-service"
+          url: "/auth-service/v3/api-docs"
 
 management:
   endpoints:
