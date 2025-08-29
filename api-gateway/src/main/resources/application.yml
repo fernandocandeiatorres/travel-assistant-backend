@@ -6,7 +6,17 @@ spring:
     name: api-gateway
 
   cloud:
+    consul:
+      host: ${SPRING_CLOUD_CONSUL_HOST}
+      port: ${SPRING_CLOUD_CONSUL_PORT}
+      discovery:
+        enabled: true
+        prefer-ip-address: true
     gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
       globalcors:
         cors-configurations:
           "[/**]":
@@ -22,7 +32,7 @@ spring:
 
       routes:
         - id: trip-service-route
-          uri: ${TRIP_SERVICE_URL}
+          uri: lb://trip-service
           predicates:
             - Path=/trip-service/**
           filters:
@@ -31,7 +41,7 @@ spring:
             - name: Authentication
 
         - id: suggestion-service-route
-          uri: ${SUGGESTION_SERVICE_URL}
+          uri: lb://suggestion-service
           predicates:
             - Path=/suggestion-service/**
           filters:
@@ -39,23 +49,24 @@ spring:
             - name: Authentication
 
         - id: auth-service-route
-          uri: ${AUTH_SERVICE_URL}
+          uri: lb://auth-service
           predicates:
             - Path=/auth-service/**
           filters:
             - StripPrefix=1
             - name: Authentication
 
-  # Configuração do Springdoc para o Gateway
+  # Configuração do Springdoc para descoberta automática no Gateway
   springdoc:
     swagger-ui:
+      use-root-path: true
       urls:
-        - name: "Trip Service"
-          url: "/trip-service/v3/api-docs"
-        - name: "Suggestion Service"
-          url: "/suggestion-service/v3/api-docs"
-        - name: "Auth Service"
-          url: "/auth-service/v3/api-docs"
+        - name: Trip Service
+          url: /trip-service/v3/api-docs
+        - name: Suggestion Service
+          url: /suggestion-service/v3/api-docs
+        - name: Auth Service
+          url: /auth-service/v3/api-docs
 
 management:
   endpoints:
@@ -67,13 +78,16 @@ management:
       show-details: always
 
 jwt:
-  secret: ${JWT_SECRET_KEY:92B4E9A7C3F8D6E1A0B5C4F3E2D1A9B8C7D6E5F4A3B2C1D0E9F8A7B6C5D4E3F2} # TODO: Mover para variável de ambiente
+  secret: ${JWT_SECRET_KEY:92B4E9A7C3F8D6E1A0B5C4F3E2D1A9B8C7D6E5F4A3B2C1D0E9F8A7B6C5D4E3F2}
 
 public-endpoints:
-  - /api/v1/users/register
-  - /api/v1/users/login
+  - /auth-service/api/v1/users/register
+  - /auth-service/api/v1/users/login
+  - /auth-service/v3/api-docs
+  - /trip-service/v3/api-docs
+  - /suggestion-service/v3/api-docs
 
 logging:
   level:
-    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
     com.fernandodev.apigateway: INFO

@@ -113,6 +113,12 @@
             <artifactId>spring-cloud-starter-circuitbreaker-reactor-resilience4j</artifactId>
         </dependency>
 
+        <!-- Consul Service Discovery -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+        </dependency>
+
         <!-- ===== VALIDAÇÃO ===== -->
         <!-- Validação de configurações -->
         <dependency>

@@ -1,6 +1,5 @@
 package com.fernandodev.apigateway.filter;
 
-import com.fernandodev.apigateway.ApiGatewayApplication;
 import com.fernandodev.apigateway.config.GatewayConfigProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -10,15 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -33,10 +30,10 @@ import java.util.UUID;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthenticationFilterTest {
+public class AuthenticationGatewayFilterFactoryTest {
 
     @InjectMocks
-    private AuthenticationFilter authenticationFilter;
+    private AuthenticationGatewayFilterFactory filterFactory;
     @Mock
     private GatewayConfigProperties configProperties;
 
@@ -46,9 +43,11 @@ public class AuthenticationFilterTest {
     private static final String SECRET = "92B4E9A7C3F8D6E1A0B5C4F3E2D1A9B8C7D6E5F4A3B2C1D0E9F8A7B6C5D4E3F2";
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
+    private GatewayFilter gatewayFilter;
+
     @BeforeEach
     void setUp() {
-        // Mocks are configured per-test to avoid UnnecessaryStubbingException
+        gatewayFilter = filterFactory.apply(new Object());
     }
 
     private void setupJwtMock() {
@@ -76,7 +75,7 @@ public class AuthenticationFilterTest {
 
         when(filterChain.filter(exchange)).thenReturn(Mono.empty());
 
-        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
+        StepVerifier.create(gatewayFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, times(1)).filter(exchange);
@@ -97,12 +96,10 @@ public class AuthenticationFilterTest {
 
         when(filterChain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
+        StepVerifier.create(gatewayFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, times(1)).filter(any(ServerWebExchange.class));
-        // A verificação de que os cabeçalhos foram adicionados corretamente
-        // deve ser feita em um teste de integração de ponta a ponta.
     }
 
     @Test
@@ -112,7 +109,7 @@ public class AuthenticationFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
-        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
+        StepVerifier.create(gatewayFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, never()).filter(any(ServerWebExchange.class));
@@ -128,7 +125,7 @@ public class AuthenticationFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
-        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
+        StepVerifier.create(gatewayFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, never()).filter(any(ServerWebExchange.class));
@@ -155,7 +152,7 @@ public class AuthenticationFilterTest {
         ServerWebExchange exchange = MockServerWebExchange.from(request);
         ServerHttpResponse response = exchange.getResponse();
 
-        StepVerifier.create(authenticationFilter.filter(exchange, filterChain))
+        StepVerifier.create(gatewayFilter.filter(exchange, filterChain))
                 .verifyComplete();
 
         verify(filterChain, never()).filter(any(ServerWebExchange.class));

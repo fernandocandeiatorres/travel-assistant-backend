@@ -8,6 +8,8 @@ spring:
             - Path=/trip-service/**
           filters:
             - StripPrefix=1
+            - name: RequestLogging
+            - name: Authentication
 
         - id: suggestion-service-route
           uri: http://localhost:8010
@@ -15,6 +17,7 @@ spring:
             - Path=/suggestion-service/**
           filters:
             - StripPrefix=1
+            - name: Authentication
 
         - id: auth-service-route
           uri: http://localhost:8020
@@ -22,14 +25,11 @@ spring:
             - Path=/auth-service/**
           filters:
             - StripPrefix=1
-
-springdoc:
-  api-docs:
-    path: /api-docs
+            - name: Authentication
 
 jwt:
   secret: 413F4428472B4B6250655368566D5970337336763979244226452948404D6351
 
-public-endpoints:
-  - /auth-service/api/v1/users/register
-  - /auth-service/api/v1/users/login
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

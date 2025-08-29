@@ -3,6 +3,12 @@ server:
 spring:
   application:
     name: trip-service
+  cloud:
+    consul:
+      host: ${SPRING_CLOUD_CONSUL_HOST}
+      port: ${SPRING_CLOUD_CONSUL_PORT}
+      discovery:
+        prefer-ip-address: true
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
