@@ -1,8 +1,11 @@
 package com.fernandodev.apigateway.controller;
 
+import org.springframework.cloud.client.discovery.ReactiveDiscoveryClient;
+import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -13,6 +16,15 @@ import java.util.Map;
 @RequestMapping("/api/gateway")
 public class GatewayController {
 
+    private final RouteLocator routeLocator;
+    private final ReactiveDiscoveryClient discoveryClient;
+
+    public GatewayController(RouteLocator routeLocator, ReactiveDiscoveryClient discoveryClient) {
+        this.routeLocator = routeLocator;
+        this.discoveryClient = discoveryClient;
+    }
+
+    // Health check simples
     @GetMapping("/health")
     public Mono<Map<String, Object>> health() {
         return Mono.just(Map.of(
@@ -23,38 +35,60 @@ public class GatewayController {
         ));
     }
 
+    // Informações básicas do Gateway
     @GetMapping("/info")
     public Mono<Map<String, Object>> info() {
         return Mono.just(Map.of(
                 "application", "Travel Assistant API Gateway",
                 "version", "1.0.0",
                 "description", "Centralized entry point for all microservices",
-                "author", "Fernando Torres",
-                "configured_routes", List.of(
-                        Map.of(
-                                "id", "trip-service-route",
-                                "path", "/api/v1/trips/**",
-                                "target", "http://localhost:8000"
-                        ),
-                        Map.of(
-                                "id", "suggestion-service-route",
-                                "path", "/api/v1/suggestions/**",
-                                "target", "http://localhost:8010"
-                        )
-                )
+                "author", "Fernando Torres"
         ));
     }
 
+    // Lista as rotas reais do Spring Cloud Gateway
+    @GetMapping("/routes")
+    public Flux<Map<String, Object>> routes() {
+        return routeLocator.getRoutes().map(route -> Map.of(
+                "id", route.getId(),
+                "uri", route.getUri().toString(),
+                "predicate", route.getPredicate().toString()
+        ));
+    }
+
+    // Lista os serviços registrados no Consul
+    @GetMapping("/services")
+    public Flux<Map<String, Object>> services() {
+        return discoveryClient.getServices()
+                .flatMap(service -> discoveryClient.getInstances(service)
+                        .map(instance -> Map.of(
+                                "serviceId", service,
+                                "host", instance.getHost(),
+                                "port", instance.getPort(),
+                                "uri", instance.getUri().toString()
+                        ))
+                );
+    }
+
+    // Status geral do gateway (resumo)
     @GetMapping("/status")
     public Mono<Map<String, Object>> status() {
-        return Mono.just(Map.of(
-                "total_routes", 2,
-                "gateway_status", "ACTIVE",
-                "services", Map.of(
-                        "trip-service", "localhost:8000",
-                        "suggestion-service", "localhost:8010"
-                ),
-                "last_check", LocalDateTime.now().toString()
-        ));
+        Mono<List<String>> services = discoveryClient.getServices().collectList();
+        Mono<List<Map<String, Object>>> routes = routeLocator.getRoutes()
+                .map(route -> Map.<String, Object>of(
+                        "id", route.getId(),
+                        "uri", route.getUri().toString()
+                ))
+                .collectList();
+
+        return Mono.zip(services, routes)
+                .map(tuple -> Map.of(
+                        "gateway_status", "ACTIVE",
+                        "total_services", tuple.getT1().size(),
+                        "registered_services", tuple.getT1(),
+                        "total_routes", tuple.getT2().size(),
+                        "configured_routes", tuple.getT2(),
+                        "last_check", LocalDateTime.now().toString()
+                ));
     }
 }

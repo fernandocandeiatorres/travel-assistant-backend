@@ -57,16 +57,23 @@ spring:
             - name: Authentication
 
   # Configuração do Springdoc para descoberta automática no Gateway
-  springdoc:
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
     swagger-ui:
-      use-root-path: true
-      urls:
-        - name: Trip Service
-          url: /trip-service/v3/api-docs
-        - name: Suggestion Service
-          url: /suggestion-service/v3/api-docs
-        - name: Auth Service
-          url: /auth-service/v3/api-docs
+      enabled: true
+      path: /swagger-ui.html
+      swagger-ui-config-url: /v3/api-docs/swagger-config
+  swagger-ui:
+    use-root-path: true
+    urls:
+      - name: Trip Service
+        url: /trip-service/v3/api-docs
+      - name: Suggestion Service
+        url: /suggestion-service/v3/api-docs
+      - name: Auth Service
+        url: /auth-service/v3/api-docs
 
 management:
   endpoints:
@@ -86,6 +93,9 @@ public-endpoints:
   - /auth-service/v3/api-docs
   - /trip-service/v3/api-docs
   - /suggestion-service/v3/api-docs
+  - /v3/api-docs
+  - /swagger-ui.html
+  - /v3/api-docs/swagger-config
 
 logging:
   level:

@@ -82,8 +82,10 @@ public class AuthenticationGatewayFilterFactory extends AbstractGatewayFilterFac
     }
 
     private boolean isPublicEndpoint(String path) {
-        return configProperties.getPublicEndpoints().stream().anyMatch(path::startsWith);
+        return configProperties.getPublicEndpoints().stream()
+                .anyMatch(path::contains);
     }
+    
 
     private boolean validateToken(String token) {
         try {

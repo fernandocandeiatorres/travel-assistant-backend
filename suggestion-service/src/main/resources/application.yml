@@ -10,6 +10,12 @@ spring:
       discovery:
         prefer-ip-address: true
 
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 management:
   endpoints:
     web:
@@ -38,8 +44,8 @@ management:
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST}
     port: 5672
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    username: ${SPRING_RABBITMQ_USERNAME}
+    password: ${SPRING_RABBITMQ_PASSWORD}
 
   cache:
     type: redis

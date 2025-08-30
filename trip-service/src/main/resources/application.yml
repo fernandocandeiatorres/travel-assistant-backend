@@ -1,5 +1,12 @@
 server:
   port: 8000
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 spring:
   application:
     name: trip-service
@@ -31,8 +38,8 @@ spring:
   rabbitmq:
     host: ${SPRING_RABBITMQ_HOST}
     port: 5672
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    username: ${SPRING_RABBITMQ_USERNAME}
+    password: ${SPRING_RABBITMQ_PASSWORD}
 
 # Resilience4j Circuit Breaker configuration
 resilience4j:
