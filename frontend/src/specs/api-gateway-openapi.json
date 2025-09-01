@@ -1,0 +1,422 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API Gateway",
+    "description": "Central API Gateway for the Travel Assistant microservices application",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Fernando Torres",
+      "email": "fernando@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/api/gateway/health": {
+      "get": {
+        "tags": ["Gateway Management"],
+        "summary": "Gateway health check",
+        "description": "Check the health status of the API Gateway",
+        "operationId": "gatewayHealth",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Gateway is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "UP",
+                  "service": "API Gateway",
+                  "timestamp": "2024-01-15T10:30:00Z",
+                  "description": "Gateway is running and routing traffic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/info": {
+      "get": {
+        "tags": ["Gateway Management"],
+        "summary": "Gateway information",
+        "description": "Get basic information about the API Gateway",
+        "operationId": "gatewayInfo",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Gateway information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InfoResponse"
+                },
+                "example": {
+                  "application": "Travel Assistant API Gateway",
+                  "version": "1.0.0",
+                  "description": "Centralized entry point for all microservices",
+                  "author": "Fernando Torres"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/routes": {
+      "get": {
+        "tags": ["Gateway Management"],
+        "summary": "List gateway routes",
+        "description": "Get all configured routes in the gateway",
+        "operationId": "gatewayRoutes",
+        "responses": {
+          "200": {
+            "description": "List of configured routes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RouteInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/services": {
+      "get": {
+        "tags": ["Gateway Management"],
+        "summary": "List registered services",
+        "description": "Get all services registered in the service discovery",
+        "operationId": "gatewayServices",
+        "responses": {
+          "200": {
+            "description": "List of registered services",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gateway/status": {
+      "get": {
+        "tags": ["Gateway Management"],
+        "summary": "Gateway status overview",
+        "description": "Get a comprehensive status overview of the gateway",
+        "operationId": "gatewayStatus",
+        "responses": {
+          "200": {
+            "description": "Gateway status overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth-service/{proxy+}": {
+      "get": {
+        "tags": ["Proxied Services"],
+        "summary": "Auth Service Proxy",
+        "description": "Proxy requests to the Auth Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to auth service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Proxied Services"],
+        "summary": "Auth Service Proxy",
+        "description": "Proxy requests to the Auth Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to auth service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      }
+    },
+    "/trip-service/{proxy+}": {
+      "get": {
+        "tags": ["Proxied Services"],
+        "summary": "Trip Service Proxy",
+        "description": "Proxy requests to the Trip Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to trip service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Proxied Services"],
+        "summary": "Trip Service Proxy",
+        "description": "Proxy requests to the Trip Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to trip service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Proxied Services"],
+        "summary": "Trip Service Proxy",
+        "description": "Proxy requests to the Trip Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to trip service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Proxied Services"],
+        "summary": "Trip Service Proxy",
+        "description": "Proxy requests to the Trip Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to trip service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      }
+    },
+    "/suggestion-service/{proxy+}": {
+      "get": {
+        "tags": ["Proxied Services"],
+        "summary": "Suggestion Service Proxy",
+        "description": "Proxy requests to the Suggestion Service",
+        "parameters": [
+          {
+            "name": "proxy+",
+            "in": "path",
+            "required": true,
+            "description": "Path to proxy to suggestion service",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful proxy response"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["UP", "DOWN"],
+            "description": "Gateway health status"
+          },
+          "service": {
+            "type": "string",
+            "description": "Service name"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Health check timestamp"
+          },
+          "description": {
+            "type": "string",
+            "description": "Health status description"
+          }
+        }
+      },
+      "InfoResponse": {
+        "type": "object",
+        "properties": {
+          "application": {
+            "type": "string",
+            "description": "Application name"
+          },
+          "version": {
+            "type": "string",
+            "description": "Application version"
+          },
+          "description": {
+            "type": "string",
+            "description": "Application description"
+          },
+          "author": {
+            "type": "string",
+            "description": "Application author"
+          }
+        }
+      },
+      "RouteInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Route identifier"
+          },
+          "uri": {
+            "type": "string",
+            "description": "Target URI"
+          },
+          "predicate": {
+            "type": "string",
+            "description": "Route predicate"
+          }
+        }
+      },
+      "ServiceInfo": {
+        "type": "object",
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "description": "Service identifier"
+          },
+          "host": {
+            "type": "string",
+            "description": "Service host"
+          },
+          "port": {
+            "type": "integer",
+            "description": "Service port"
+          },
+          "uri": {
+            "type": "string",
+            "description": "Service URI"
+          }
+        }
+      },
+      "StatusResponse": {
+        "type": "object",
+        "properties": {
+          "gateway_status": {
+            "type": "string",
+            "description": "Gateway status"
+          },
+          "total_services": {
+            "type": "integer",
+            "description": "Total number of registered services"
+          },
+          "registered_services": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of registered service names"
+          },
+          "total_routes": {
+            "type": "integer",
+            "description": "Total number of configured routes"
+          },
+          "configured_routes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RouteInfo"
+            },
+            "description": "List of configured routes"
+          },
+          "last_check": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last status check timestamp"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

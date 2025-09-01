@@ -1,0 +1,274 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Suggestion Service API",
+    "description": "Travel suggestion and recommendation service for the Travel Assistant application",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Fernando Torres",
+      "email": "fernando@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/suggestion-service",
+      "description": "Local development server (via API Gateway)"
+    },
+    {
+      "url": "http://localhost:8010",
+      "description": "Direct service access"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/suggestions/trip/{tripId}": {
+      "get": {
+        "tags": ["Suggestions"],
+        "summary": "Get suggestions for a trip",
+        "description": "Retrieve all suggestions for a specific trip",
+        "operationId": "getSuggestionsByTripId",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip unique identifier",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of suggestions for the trip",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Suggestion"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trip not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suggestions/{suggestionId}": {
+      "get": {
+        "tags": ["Suggestions"],
+        "summary": "Get suggestion by ID",
+        "description": "Retrieve a specific suggestion by its ID",
+        "operationId": "getSuggestionById",
+        "parameters": [
+          {
+            "name": "suggestionId",
+            "in": "path",
+            "required": true,
+            "description": "Suggestion unique identifier",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Suggestion details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Suggestion"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Suggestion not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suggestions/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Check the health status of the suggestion service",
+        "operationId": "healthCheck",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Suggestion Service is UP"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suggestions/cache/debug/{tripId}": {
+      "get": {
+        "tags": ["Debug"],
+        "summary": "Debug cache status",
+        "description": "Debug endpoint to check cache status for a specific trip",
+        "operationId": "debugCache",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip unique identifier",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cache debug information",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "✅ Cache EXISTS para 12345678-1234-1234-1234-123456789abc. Tipo: ArrayList"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Suggestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Suggestion unique identifier"
+          },
+          "tripId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Related trip ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Suggestion title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description of the suggestion"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "ACCOMMODATION",
+              "RESTAURANT",
+              "ACTIVITY",
+              "TRANSPORT",
+              "SIGHTSEEING"
+            ],
+            "description": "Category of the suggestion"
+          },
+          "location": {
+            "type": "string",
+            "description": "Location or address of the suggested place"
+          },
+          "rating": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 5,
+            "description": "Rating from 0 to 5"
+          },
+          "priceRange": {
+            "type": "string",
+            "enum": ["BUDGET", "MODERATE", "EXPENSIVE", "LUXURY"],
+            "description": "Price range category"
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to an image of the suggested place"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Official website URL"
+          },
+          "isRecommended": {
+            "type": "boolean",
+            "description": "Whether this is a top recommendation"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Suggestion creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Error timestamp"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

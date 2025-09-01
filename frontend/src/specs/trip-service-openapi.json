@@ -1,0 +1,402 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Trip Service API",
+    "description": "Trip management service for the Travel Assistant application",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Fernando Torres",
+      "email": "fernando@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080/trip-service",
+      "description": "Local development server (via API Gateway)"
+    },
+    {
+      "url": "http://localhost:8000",
+      "description": "Direct service access"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/trips": {
+      "get": {
+        "tags": ["Trips"],
+        "summary": "Get all trips",
+        "description": "Retrieve a list of all trips",
+        "operationId": "getAllTrips",
+        "responses": {
+          "200": {
+            "description": "List of trips",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TripResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trips/{tripId}": {
+      "get": {
+        "tags": ["Trips"],
+        "summary": "Get trip by ID",
+        "description": "Retrieve a specific trip by its ID",
+        "operationId": "getTripById",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip unique identifier",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trip details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trip not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Trips"],
+        "summary": "Update trip",
+        "description": "Update an existing trip",
+        "operationId": "updateTrip",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip unique identifier",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "description": "User ID for authorization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trip updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Trip not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Trips"],
+        "summary": "Delete trip",
+        "description": "Delete a trip by its ID",
+        "operationId": "deleteTrip",
+        "parameters": [
+          {
+            "name": "tripId",
+            "in": "path",
+            "required": true,
+            "description": "Trip unique identifier",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "description": "User ID for authorization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Trip deleted successfully"
+          },
+          "404": {
+            "description": "Trip not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/trips/create": {
+      "post": {
+        "tags": ["Trips"],
+        "summary": "Create new trip",
+        "description": "Create a new trip",
+        "operationId": "createTrip",
+        "parameters": [
+          {
+            "name": "X-User-Id",
+            "in": "header",
+            "required": true,
+            "description": "User ID for authorization",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TripCreateRequest"
+              },
+              "example": {
+                "destination": "Paris, France",
+                "startsAt": "2024-06-15",
+                "endsAt": "2024-06-22"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Trip created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TripCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid trip data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TripCreateRequest": {
+        "type": "object",
+        "required": ["destination", "startsAt", "endsAt"],
+        "properties": {
+          "destination": {
+            "type": "string",
+            "description": "Trip destination"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip start date"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip end date"
+          }
+        }
+      },
+      "TripUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "description": "Trip destination"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip start date"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip end date"
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "description": "Whether the trip is confirmed"
+          }
+        }
+      },
+      "TripCreateResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Trip unique identifier"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User who created the trip"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Trip destination"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip start date"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip end date"
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "description": "Whether the trip is confirmed"
+          }
+        }
+      },
+      "TripResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Trip unique identifier"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "User who created the trip"
+          },
+          "destination": {
+            "type": "string",
+            "description": "Trip destination"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip start date"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date",
+            "description": "Trip end date"
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "description": "Whether the trip is confirmed"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Trip creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Error timestamp"
+          },
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
